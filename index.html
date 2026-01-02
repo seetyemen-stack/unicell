@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>مكتبة نغمات يونيسل تكنولوجي</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- يظهر فقط في الصفحة الرئيسية -->
+    <header class="header" id="homeHeader">
+      <div class="brand">
+        <div class="brand-logo" aria-label="Logo">
+          <img src="logo.png" alt="Unicell Logo" onerror="this.style.display='none';document.getElementById('logoFallback').style.display='grid';">
+          <div id="logoFallback" class="logo-fallback" style="display:none">🎵</div>
+        </div>
+
+        <h1 class="title">مكتبة نغمات يونيسل تكنولوجي</h1>
+        <p class="subtitle">اختر القسم ثم اختر النغمة</p>
+      </div>
+
+      <div class="divider"></div>
+    </header>
+
+    <main class="main">
+      <div class="container">
+
+        <!-- الصفحة الرئيسية: الأقسام -->
+        <section id="viewCategories" class="view">
+          <div id="categoriesGrid" class="grid categories-grid"></div>
+        </section>
+
+        <!-- صفحة القائمة: نغمات القسم -->
+        <section id="viewList" class="view hidden">
+          <div class="topbar">
+            <button
+  id="btnBackToCategories"
+  class="btn btn-ghost"
+  type="button"
+  onclick="history.back()">
+  رجوع
+</button>
+            <div class="topbar-text">
+              <h2 id="listTitle" class="section-title" style="margin:0;"></h2>
+            </div>
+            <span style="width:72px;display:inline-block"></span>
+          </div>
+
+          <div id="listGrid" class="grid list-grid"></div>
+        </section>
+
+        <!-- صفحة التفاصيل -->
+        <section id="viewDetails" class="view hidden">
+          <div class="topbar">
+            <button id="btnBackToList" class="btn btn-ghost" type="button">رجوع</button>
+            <div class="topbar-text">
+              <h2 class="section-title" style="margin:0;">تفاصيل النغمة</h2>
+            </div>
+            <span style="width:72px;display:inline-block"></span>
+          </div>
+
+          <div class="card details-card">
+            <div id="detailsName" class="details-name"></div>
+
+            <!-- الضغط على الصورة = تشغيل/إيقاف -->
+            <div class="media" id="mediaToggle" tabindex="0" aria-label="تشغيل أو إيقاف">
+              <img id="detailsImage" class="media-img" src="" alt="">
+            </div>
+
+            <audio id="detailsAudio"></audio>
+
+            <div class="card-soft sub">
+              <h3 class="sub-title">الاشتراك</h3>
+              <p class="sub-hint">اختر الشركة ثم اضغط “اشتراك” لفتح رسالة SMS تلقائيًا.</p>
+              <div id="subsGrid" class="subs-grid"></div>
+              <div id="toast" class="toast"></div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="card footer-card">
+
+      <h3 class="footer-title">التواصل</h3>
+
+      <div class="contact">
+
+        <div>
+          📞 الاتصال :
+          <a href="tel:736000600">736000600</a>
+        </div>
+
+        <div>
+          💬 واتساب :
+          <a href="https://wa.me/967736000600" target="_blank" rel="noopener">
+            736000600
+          </a>
+        </div>
+
+        <div>
+          ✉️ البريد الإلكتروني :
+          <a href="mailto:info@unicell.com.ye">info@unicell.com.ye</a>
+        </div>
+
+        <div>
+
+      </div>
+
+      <!-- Social Icons -->
+      <div class="social" aria-label="Social Links">
+
+        <a href="https://www.instagram.com/Unicellye"
+           aria-label="Instagram" target="_blank" rel="noopener">
+          <img src="media/icons/instagram.svg" alt="Instagram">
+        </a>
+
+        <a href="https://t.me/Unicellye"
+           aria-label="Telegram" target="_blank" rel="noopener">
+          <img src="media/icons/telegram.svg" alt="Telegram">
+        </a>
+
+        <a href="https://x.com/Unicellye"
+           aria-label="X" target="_blank" rel="noopener">
+          <img src="media/icons/x.svg" alt="X">
+        </a>
+
+        <a href="https://www.youtube.com/@Unicellye"
+           aria-label="YouTube" target="_blank" rel="noopener">
+          <img src="media/icons/youtube.svg" alt="YouTube">
+        </a>
+
+        <a href="https://www.facebook.com/Unicellye"
+           aria-label="Facebook" target="_blank" rel="noopener">
+          <img src="media/icons/facebook.svg" alt="Facebook">
+        </a>
+
+      </div>
+
+      <p class="footer-note">
+        © <span id="year"></span> يونيسل تكنولوجي 
+      </p>
+
+    </div>
+  </div>
+</footer>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

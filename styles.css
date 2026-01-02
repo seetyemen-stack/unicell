@@ -1,0 +1,413 @@
+/* =========================================================
+   Unicell Ringtones — Skeleton (Clean + Fast)
+   Dark Blue / White • RTL • Mobile-first
+   ========================================================= */
+
+:root{
+  --bg-main:#061a3a;
+  --bg-card:#0a2a5e;
+  --bg-card-hover:#0f3470;
+
+  --brand:#0a5bd3;
+  --brand2:#084bb3;
+
+  --text:#ffffff;
+  --muted:#e0e6f2;
+
+  --border:rgba(255,255,255,.18);
+  --shadow:0 10px 28px rgba(0,0,0,.45);
+
+  --radius:18px;
+  --radiusSm:14px;
+  --gap:14px;
+  --container:1040px;
+
+  --safeTop: env(safe-area-inset-top);
+  --safeBottom: env(safe-area-inset-bottom);
+}
+
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  font-family:"Cairo", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: var(--bg-main);
+  color: var(--text);
+}
+
+a{ color:inherit; }
+a:hover{ opacity:.92; }
+
+.hidden{ display:none !important; }
+
+.app{ min-height:100%; display:flex; flex-direction:column; }
+
+.container{
+  width: min(var(--container), 100%);
+  margin: 0 auto;
+  padding: 0 14px;
+}
+
+/* ===== Header (Home only) ===== */
+.header{
+  padding-top: calc(22px + var(--safeTop));
+  padding-bottom: 10px;
+  text-align:center;
+}
+
+.brand{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap: 12px;
+}
+
+.brand-logo{
+  width: 82px;
+  height: 82px;
+  border-radius: 22px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+}
+
+.brand-logo img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+}
+
+.logo-fallback{
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  font-size: 30px;
+}
+
+.title{
+  margin:0;
+  font-weight: 900;
+  font-size: clamp(20px, 5vw, 28px);
+  text-align:center;
+}
+
+.subtitle{
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  text-align:center;
+}
+
+.divider{
+  height:1px;
+  width: min(820px, 100%);
+  margin: 16px auto 0;
+  background: rgba(255,255,255,.18);
+}
+
+/* ===== Main ===== */
+.main{ flex:1; padding: 14px 0 26px; }
+.view{ margin-top: 10px; }
+
+.section-title{
+  margin: 10px 0 12px;
+  font-size: 20px;
+  font-weight: 900;
+  text-align:center;
+}
+
+/* ===== Topbar ===== */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.topbar-text{ flex:1; text-align:center; }
+
+/* ===== Grid ===== */
+.grid{ display:grid; gap: var(--gap); }
+.categories-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.list-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+@media (min-width: 720px){
+  .categories-grid{ grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .list-grid{ grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* ===== Cards ===== */
+.card{
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.card-soft{
+  background: var(--bg-card);
+  border: 1px dashed rgba(255,255,255,.20);
+  border-radius: var(--radius);
+}
+
+/* Category card */
+.category-card{
+  padding: 22px 12px;
+  text-align:center;
+  cursor:pointer;
+  transition: transform .15s ease, background .15s ease;
+}
+.category-card:hover{
+  background: var(--bg-card-hover);
+  transform: translateY(-2px);
+}
+.category-title{ margin:0; font-weight: 900; font-size: 17px; }
+
+/* Ringtone card (List) */
+.tone-card{
+  padding: 10px;
+  border-radius: var(--radiusSm);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  text-align:center;
+  transition: transform .15s ease, background .15s ease;
+}
+.tone-card:hover{ background: var(--bg-card-hover); transform: translateY(-2px); }
+
+.tone-thumb-wrap{
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.06);
+}
+
+.tone-thumb{
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display:block;
+}
+
+.tone-name{
+  font-weight: 900;
+  font-size: 14px;
+  margin-top: 10px;
+  white-space: nowrap;
+  overflow:hidden;
+  text-overflow: ellipsis;
+}
+
+.tone-actions{
+  margin-top: 10px;
+  display:flex;
+  justify-content:center;
+  gap: 10px;
+}
+
+/* ===== Details ===== */
+.details-card{ padding: 16px; }
+.details-name{
+  text-align:center;
+  font-size: 18px;
+  font-weight: 900;
+  margin: 4px 0 12px;
+}
+
+.media{
+  position:relative;
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto 10px;
+  border-radius: 18px;
+  overflow:hidden;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.06);
+  cursor: pointer;
+  user-select: none;
+}
+
+.media-img{
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display:block;
+}
+
+/* subtle feedback only (no icon) */
+.media.is-playing::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: rgba(0,0,0,.08);
+}
+
+/* ===== Subscription ===== */
+.sub{ margin-top: 14px; padding: 14px; }
+.sub-title{ text-align:center; font-size: 16px; font-weight: 900; margin: 0 0 6px; }
+.sub-hint{ text-align:center; color: var(--muted); font-size: 13px; margin: 0 0 10px; line-height: 1.7; }
+.subs-grid{ display:grid; gap: 10px; }
+
+.sub-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.sub-item:hover{ background: var(--bg-card-hover); }
+
+.sub-left{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  min-width: 0;
+}
+.company-logo{
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.06);
+  padding: 6px;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+.company-info{ min-width:0; text-align:right; }
+.company-name{ font-weight: 900; font-size: 14px; }
+.company-code{ color: var(--muted); font-size: 12px; white-space: nowrap; }
+
+.toast{
+  margin-top: 10px;
+  min-height: 18px;
+  text-align:center;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* ===== Buttons ===== */
+.btn{
+  appearance:none;
+  border:none;
+  background: var(--brand);
+  color:#fff;
+  border-radius: 999px;
+  padding: 9px 16px;
+  font-family: inherit;
+  font-weight: 900;
+  cursor:pointer;
+  transition: transform .12s ease, opacity .12s ease, background .12s ease;
+  white-space: nowrap;
+}
+.btn:hover{ opacity:.92; transform: translateY(-1px); background: var(--brand2); }
+.btn:active{ transform: translateY(0); opacity:.96; }
+
+.btn-ghost{
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.btn-ghost:hover{
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.26);
+}
+
+.btn-soft{
+  background: rgba(255,255,255,.10);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.btn-soft:hover{ background: rgba(255,255,255,.14); }
+
+/* ===== Footer ===== */
+.footer{ padding: 18px 0 calc(18px + var(--safeBottom)); }
+.footer-card{ padding: 16px; }
+.footer-title{ margin: 0 0 10px; font-size: 18px; font-weight: 900; text-align:center; }
+.contact{ text-align:center; color: var(--muted); display:grid; gap: 6px; font-size: 14px; }
+.contact a{ color: var(--text); text-decoration:none; border-bottom: 1px dotted rgba(255,255,255,.35); }
+.social{ display:flex; justify-content:center; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
+.social a{
+  width: 42px; height: 42px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.08);
+  display:grid; place-items:center;
+  transition: transform .15s ease, opacity .15s ease;
+}
+.social a:hover{ transform: translateY(-2px); opacity:.95; }
+.social img{ width: 24px; height: 24px; display:block; }
+
+.footer-note{ margin: 10px 0 0; text-align:center; color: var(--muted); font-size: 13px; }
+
+.mono{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: .95em;
+}
+/* =========================
+   Fix: long codes overflow in subscription cards
+   ========================= */
+
+/* الكارد نفسه */
+.sub-card,
+.sub-item,
+.company-card,
+.subscription-item {
+  overflow: hidden; /* يمنع خروج أي شيء خارج الإطار */
+}
+
+/* السطر الذي يحتوي (الرقم — الكود) */
+.sub-meta,
+.sub-line,
+.company-meta,
+.subscription-meta {
+  display: flex;
+  flex-wrap: wrap;         /* يسمح بالنزول لسطر ثاني */
+  gap: 6px 10px;
+  align-items: center;
+  line-height: 1.6;
+  max-width: 100%;
+  overflow-wrap: anywhere; /* يكسر النص الطويل داخل الكلمة */
+  word-break: break-word;  /* دعم إضافي */
+}
+
+/* الكود نفسه (الأهم) */
+.sub-meta .code,
+.sub-line .code,
+.company-meta .code,
+.subscription-meta .code {
+  direction: ltr;          /* لأن الكود انجليزي/أرقام */
+  unicode-bidi: plaintext; /* يعرضه بشكل صحيح داخل RTL */
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Cairo", monospace;
+  font-size: 0.95em;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.08);
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* الرقم أيضًا لو طويل */
+.sub-meta .num,
+.sub-line .num,
+.company-meta .num,
+.subscription-meta .num {
+  direction: ltr;
+  unicode-bidi: plaintext;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* إذا كان عندك داخل الكارد عنصر نص عادي */
+.sub-item * ,
+.company-card * ,
+.subscription-item * {
+  min-width: 0; /* مهم جدًا مع flex حتى لا يتمدد العنصر ويكسر التصميم */
+}
