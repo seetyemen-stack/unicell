@@ -1,9 +1,10 @@
 /* =========================================================
    app.js — تشغيل الموقع
    - Header يظهر فقط في الصفحة الرئيسية (الأقسام)
-   - القائمة: الضغط على الصورة تشغيل/إيقاف (Preview)
+   - القائمة: تشغيل/إيقاف من زر التشغيل فقط (Preview)
    - زر اشتراك في القائمة: يفتح التفاصيل
-   - التفاصيل: الضغط على الصورة تشغيل/إيقاف
+   - التفاصيل: الضغط على الصورة تشغيل/إيقاف (كما هو)
+   - إصلاح مهم: عند تحديث الصفحة داخل list/details لا تختفي البيانات
    ========================================================= */
 
 (function () {
@@ -69,7 +70,6 @@
     const codes = r.codes || {};
     for (const k of Object.keys(SERVICE_NUMBERS)) {
       if (!codes[k]) codes[k] = {};
-      // لا نحتاج تخزين الرقم داخل النغمة — لكن نسمح إن وجد
     }
     r.codes = codes;
     return r;
@@ -94,22 +94,36 @@
   const VIEW_KEY_TO_HASH = (k) => "#" + k;
 
   function pushView(name) {
-    // سجّل الانتقال حتى يعمل زر الرجوع/السحب بشكل صحيح
     history.pushState({ view: name }, "", VIEW_KEY_TO_HASH(name));
     showView(name);
   }
 
-  // تهيئة أول تحميل: نضع حالة ابتدائية حتى لا يخرج مباشرة
-  (function initHistory() {
-    const start = (location.hash || "").replace("#", "") || "categories";
-    history.replaceState({ view: start }, "", VIEW_KEY_TO_HASH(start));
-    showView(start);
-  })();
+  function stopPreview() {
+    try { previewAudio.pause(); } catch {}
+    previewAudio.currentTime = 0;
+    previewPlayingId = null;
+  }
 
   // عند الرجوع (زر الهاتف أو السحب)
   window.addEventListener("popstate", (e) => {
+    stopPreview();
+    try { detailsAudio.pause(); } catch {}
+    setDetailsPlaying(false);
+
     const name = (e.state && e.state.view) || "categories";
     showView(name);
+
+    // ✅ إذا رجع لصفحة القائمة: ارسم آخر قسم محفوظ
+    if (name === "list") {
+      const cat = sessionStorage.getItem("lastCategory");
+      if (cat) openCategory(cat, true);
+    }
+
+    // ✅ إذا رجع للتفاصيل: ارسم آخر نغمة محفوظة
+    if (name === "details") {
+      const id = sessionStorage.getItem("lastDetailsId");
+      if (id) openDetails(id, true);
+    }
   });
 
   // ---------- Categories ----------
@@ -139,10 +153,11 @@
     return R.filter((x) => x.category === cat);
   }
 
-  function stopPreview() {
-    try { previewAudio.pause(); } catch {}
-    previewAudio.currentTime = 0;
-    previewPlayingId = null;
+  function setPlayIcon(btn, isPlaying) {
+    if (!btn) return;
+    btn.classList.toggle("is-playing", !!isPlaying);
+    btn.setAttribute("aria-pressed", isPlaying ? "true" : "false");
+    btn.textContent = isPlaying ? "❚❚" : "▶";
   }
 
   function toneCard(t) {
@@ -158,37 +173,56 @@
       <div class="tone-name">${safe(t.title)}</div>
 
       <div class="tone-actions">
+        <button class="btn btn-soft tone-play" type="button" aria-label="تشغيل/إيقاف">▶</button>
         <button class="btn btn-soft tone-subscribe" type="button">اشتراك</button>
       </div>
     `;
 
-    const img = div.querySelector(".tone-thumb");
-    const btn = div.querySelector(".tone-subscribe");
+    const playBtn = div.querySelector(".tone-play");
+    const subBtn = div.querySelector(".tone-subscribe");
 
-    // تشغيل/إيقاف من الصورة (Preview)
-    img.addEventListener("click", async () => {
+    // ✅ تشغيل/إيقاف من زر التشغيل فقط (وليس الصورة)
+    playBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+
       try {
-        // إذا كانت نفس النغمة شغالة -> إيقاف
+        // نفس النغمة شغالة -> إيقاف
         if (previewPlayingId === t.id && !previewAudio.paused) {
           stopPreview();
+          setPlayIcon(playBtn, false);
+          playBtn.blur(); // ✅ إزالة focus (يقلل أي إطار/لون)
           return;
         }
 
-        // إيقاف أي نغمة سابقة
+        // إيقاف أي نغمة سابقة + تحديث أي أزرار قديمة
         stopPreview();
-
+        // (لو كان فيه زر سابق مفعّل داخل كارد آخر، المتصفح سيعيد رسمه عند إعادة renderList، لكن هنا نحدّث الحالي)
         previewAudio.src = t.audio;
         previewPlayingId = t.id;
         await previewAudio.play();
+
+        setPlayIcon(playBtn, true);
+        playBtn.blur(); // ✅
       } catch {
         stopPreview();
+        setPlayIcon(playBtn, false);
+        playBtn.blur(); // ✅
         toastMsg("تعذر تشغيل الصوت (تحقق من ملف الصوت).");
       }
     });
 
+    // عند انتهاء الصوت: رجّع زر التشغيل
+    previewAudio.addEventListener("ended", () => {
+      // فقط لو هذه هي نفس النغمة
+      if (previewPlayingId === t.id) {
+        previewPlayingId = null;
+        setPlayIcon(playBtn, false);
+      }
+    });
+
     // زر اشتراك -> تفاصيل
-    btn.addEventListener("click", () => {
-      stopPreview();          // توقف أي معاينة قبل الدخول للتفاصيل
+    subBtn.addEventListener("click", () => {
+      stopPreview();
       openDetails(t.id);
     });
 
@@ -215,14 +249,22 @@
     items.forEach((t) => listGrid.appendChild(toneCard(t)));
   }
 
-  function openCategory(cat) {
+  // ✅ openCategory مع خيار بدون push (للاسترجاع عند التحديث)
+  function openCategory(cat, noPush) {
     currentCategory = cat;
     currentList = getCategoryRingtones(cat);
 
-    if (listTitle) listTitle.textContent = cat;
+    // ✅ حفظ آخر قسم لعدم فقدانه عند Refresh
+    sessionStorage.setItem("lastCategory", cat);
 
+    if (listTitle) listTitle.textContent = cat;
     renderList(currentList);
-    pushView("list"); // ✅ بدل showView("list")
+
+    if (noPush) {
+      showView("list");
+    } else {
+      pushView("list");
+    }
   }
 
   // ---------- Details ----------
@@ -295,6 +337,11 @@
           toastMsg("ضع كود الاشتراك لهذه الشركة داخل data.js");
           return;
         }
+
+        // أوقف صوت التفاصيل قبل الانتقال للـ SMS
+        try { detailsAudio.pause(); } catch {}
+        setDetailsPlaying(false);
+
         window.location.href = makeSmsLink(number, code);
 
         // Copy fallback
@@ -308,9 +355,13 @@
     });
   }
 
-  function openDetails(id) {
-    const t = R.find((x) => x.id === id);
+  // ✅ openDetails مع خيار بدون push (للاسترجاع عند التحديث)
+  function openDetails(id, noPush) {
+    const t = R.find((x) => String(x.id) === String(id));
     if (!t) return;
+
+    // ✅ حفظ آخر تفاصيل لعدم فقدانه عند Refresh
+    sessionStorage.setItem("lastDetailsId", String(id));
 
     // توقف أي تشغيل سابق في التفاصيل
     try { detailsAudio.pause(); } catch {}
@@ -327,14 +378,50 @@
 
     toastMsg("");
     renderSubscriptions(t);
-    pushView("details"); // ✅ بدل showView("details")
+
+    if (noPush) {
+      showView("details");
+    } else {
+      pushView("details");
+    }
   }
+
+  // ===============================
+  // Init History + Restore on Refresh
+  // ===============================
+  (function initHistory() {
+    const start = (location.hash || "").replace("#", "") || "categories";
+    history.replaceState({ view: start }, "", VIEW_KEY_TO_HASH(start));
+
+    // ✅ استرجاع صحيح عند Refresh
+    if (start === "list") {
+      const cat = sessionStorage.getItem("lastCategory");
+      if (cat) {
+        openCategory(cat, true);
+        return;
+      }
+      showView("categories");
+      return;
+    }
+
+    if (start === "details") {
+      const id = sessionStorage.getItem("lastDetailsId");
+      if (id) {
+        openDetails(id, true);
+        return;
+      }
+      showView("categories");
+      return;
+    }
+
+    showView(start);
+  })();
 
   // ---------- Bindings ----------
   if (btnBackToCategories) {
     btnBackToCategories.addEventListener("click", () => {
       stopPreview();
-      history.back(); // ✅ بدل showView("categories")
+      history.back();
     });
   }
 
@@ -342,7 +429,7 @@
     btnBackToList.addEventListener("click", () => {
       try { detailsAudio.pause(); } catch {}
       setDetailsPlaying(false);
-      history.back(); // ✅ بدل showView("list")
+      history.back();
     });
   }
 
@@ -360,5 +447,4 @@
 
   // Start
   renderCategories();
-  // لا نحتاج showView هنا لأن initHistory() قام بعرض الصفحة المناسبة
 })();
