@@ -147,4 +147,30 @@ window.RINGTONES = [
       you: { code: "SABR" }
    }
 },
+
+{
+  id: "dua_mna",
+  title: "دعاء يجيبني - احمد المطري",
+  category: "أدعية",
+  image: "ringtones/images/mad.jpg",
+  audio: "ringtones/audio/mna.mp3",
+  codes: {
+    yemen:   { code: "DRA01" },
+    sabafon: { code: "DRA01" },
+    you:     { code: "DRA01" }
+  }
+},
+   
+{
+  id: "nasheed_alf",
+  title: "الف صلى - عبدالعظيم عزالدين",
+  category: "أناشيد",
+  image: "ringtones/images/abd.jpg",
+  audio: "ringtones/audio/alf.mp3",
+  codes: {
+    yemen:   { code: "NAS01" },
+    sabafon: { code: "NAS01" },
+    you:     { code: "NAS01" }
+  }
+},
 ];
