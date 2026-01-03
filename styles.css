@@ -202,12 +202,58 @@ a:hover{ opacity:.92; }
   text-overflow: ellipsis;
 }
 
+/* Actions under ringtone */
 .tone-actions{
   margin-top: 10px;
   display:flex;
   justify-content:center;
-  gap: 10px;
+  align-items:center;
+  gap:10px;
 }
+
+.tone-actions .tone-subscribe{
+  flex: 1;
+  height: 44px;
+}
+
+/* زر التشغيل/الإيقاف: شفاف دائمًا + الأيقونة أبيض (بدون أي برتقالي) */
+.tone-actions .tone-play,
+.tone-actions .tone-play:hover,
+.tone-actions .tone-play:active,
+.tone-actions .tone-play:focus,
+.tone-actions .tone-play:focus-visible{
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 999px;
+
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  filter: none !important;
+
+  border: 1px solid rgba(255,255,255,.25) !important;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  color:#fff !important;
+  font-variant-emoji: text;
+  font-family: "Cairo", Arial, sans-serif;
+
+  font-size: 18px;
+  font-weight: 900;
+
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* هذا يلغي “البرتقالي” اللي يطلع من بعض متصفحات أندرويد */
+button, .btn{ -webkit-tap-highlight-color: rgba(0,0,0,0) !important; }
 
 /* ===== Details ===== */
 .details-card{ padding: 16px; }
@@ -246,21 +292,22 @@ a:hover{ opacity:.92; }
   background: rgba(0,0,0,.08);
 }
 
-/* ===== Subscription ===== */
+/* ===== Subscription (Details) ===== */
 .sub{ margin-top: 14px; padding: 14px; }
 .sub-title{ text-align:center; font-size: 16px; font-weight: 900; margin: 0 0 6px; }
 .sub-hint{ text-align:center; color: var(--muted); font-size: 13px; margin: 0 0 10px; line-height: 1.7; }
 .subs-grid{ display:grid; gap: 10px; }
 
+/* صف الشركة (Compact) */
 .sub-item{
   display:flex;
   align-items:center;
-  justify-content:space-between;
-  gap: 10px;
-  padding: 10px;
+  gap:12px;
+  padding: 10px 12px;
   border-radius: 14px;
   border: 1px solid var(--border);
   background: var(--bg-card);
+  overflow:hidden;
 }
 .sub-item:hover{ background: var(--bg-card-hover); }
 
@@ -268,22 +315,66 @@ a:hover{ opacity:.92; }
   display:flex;
   align-items:center;
   gap: 10px;
+  flex: 1;
   min-width: 0;
 }
+
+/* لوجو الشركة */
 .company-logo{
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,.06);
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.22);
+  background: rgba(255,255,255,.10);
   padding: 6px;
   object-fit: contain;
   flex: 0 0 auto;
 }
-.company-info{ min-width:0; text-align:right; }
-.company-name{ font-weight: 900; font-size: 14px; }
-.company-code{ color: var(--muted); font-size: 12px; white-space: nowrap; }
 
+.company-info{
+  flex: 1;
+  min-width:0;
+  text-align:right;
+}
+
+.company-name{
+  font-weight: 900;
+  font-size: 15px;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.company-code{
+  margin-top: 4px;
+  color: rgba(255,255,255,.80);
+  font-size: 12.5px;
+  line-height: 1.4;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* داخل الاشتراكات: الأرقام LTR بشكل صحيح */
+.sub-item .mono{
+  direction: ltr;
+  unicode-bidi: plaintext;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+.sub-item > .btn{
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* ===== Toast ===== */
 .toast{
   margin-top: 10px;
   min-height: 18px;
@@ -349,65 +440,4 @@ a:hover{ opacity:.92; }
 .mono{
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: .95em;
-}
-/* =========================
-   Fix: long codes overflow in subscription cards
-   ========================= */
-
-/* الكارد نفسه */
-.sub-card,
-.sub-item,
-.company-card,
-.subscription-item {
-  overflow: hidden; /* يمنع خروج أي شيء خارج الإطار */
-}
-
-/* السطر الذي يحتوي (الرقم — الكود) */
-.sub-meta,
-.sub-line,
-.company-meta,
-.subscription-meta {
-  display: flex;
-  flex-wrap: wrap;         /* يسمح بالنزول لسطر ثاني */
-  gap: 6px 10px;
-  align-items: center;
-  line-height: 1.6;
-  max-width: 100%;
-  overflow-wrap: anywhere; /* يكسر النص الطويل داخل الكلمة */
-  word-break: break-word;  /* دعم إضافي */
-}
-
-/* الكود نفسه (الأهم) */
-.sub-meta .code,
-.sub-line .code,
-.company-meta .code,
-.subscription-meta .code {
-  direction: ltr;          /* لأن الكود انجليزي/أرقام */
-  unicode-bidi: plaintext; /* يعرضه بشكل صحيح داخل RTL */
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Cairo", monospace;
-  font-size: 0.95em;
-  padding: 2px 8px;
-  border-radius: 10px;
-  background: rgba(255,255,255,0.08);
-  max-width: 100%;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-/* الرقم أيضًا لو طويل */
-.sub-meta .num,
-.sub-line .num,
-.company-meta .num,
-.subscription-meta .num {
-  direction: ltr;
-  unicode-bidi: plaintext;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-/* إذا كان عندك داخل الكارد عنصر نص عادي */
-.sub-item * ,
-.company-card * ,
-.subscription-item * {
-  min-width: 0; /* مهم جدًا مع flex حتى لا يتمدد العنصر ويكسر التصميم */
 }
