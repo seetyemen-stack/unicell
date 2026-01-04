@@ -30,12 +30,27 @@ window.COMPANIES = [
   { key: "you",     name: "YOU",          logo: "media/company/you.png" }
 ];
 
+/*
+  ✅ تنسيق إضافة نغمة (Template)
+
+  {
+    id: "unique-id",                    // اختياري (لو تركته فاضي يتم توليده تلقائيًا)
+    title: "اسم النغمة",                // مطلوب
+    categories: ["زوامل", "الأكثر تحميلًا"],  // قسم واحد أو عدة أقسام
+    createdAt: "2026-01-04",            // اختياري (ISO). لو لم تضعه: ترتيب الملف (الأعلى أحدث)
+    rank: { "زوامل": 1, "الأكثر تحميلًا": 2 }, // اختياري: ترقيم/ترتيب يدوي داخل كل قسم
+    image: "AUTO",                      // للأقسام بالاسم فقط: اكتب AUTO أو اتركه فارغ وسيُولد تلقائيًا
+    audio: "ringtones/audio/file.mp3",
+    codes: { yemen: { code: "..." }, sabafon: { code: "..." }, you: { code: "..." } }
+  }
+*/
+
 window.RINGTONES = [
   {
-    id: "name_ashraf",
+    id: "name-ashraf",
     title: "دعاء أشرف",
-    category: "أدعية بالاسم",
-    image: "ringtones/images/ashraf.jpg",
+    categories: ["أدعية بالاسم"],
+    image: "AUTO",
     audio: "ringtones/audio/ashraf.mp3",
     codes: {
       yemen: { code: "ASH01" },
@@ -45,10 +60,10 @@ window.RINGTONES = [
   },
 
   {
-    id: "name_amen",
+    id: "name-amen",
     title: "دعاء آمين",
-    category: "أدعية بالاسم",
-    image: "ringtones/images/amen.jpg",
+    categories: ["أدعية بالاسم"],
+    image: "AUTO",
     audio: "ringtones/audio/amen.mp3",
     codes: {
       yemen: { code: "9930010087" },
@@ -58,36 +73,28 @@ window.RINGTONES = [
   },
 
   {
-    id: "top_sabr_yaqalbi",
-    title: "والصبر - ابراهيم الدوله",
-    category: "الأكثر تحميلًا",
-    image: "ringtones/images/sabr.jpg",
+    id: "sabr",
+    title: "والصبر ياقلبي - ابراهيم الدوله",
+    categories: ["الأكثر تحميلًا", "زوامل"],
+    image: "ringtones/images/a1.jpg",
     audio: "ringtones/audio/sabr.mp3",
-    codes: {
-      yemen: { code:"9930010087" },
-      sabafon: { code: "SABR" },
-      you: { code: "SABR" }
-    }
+    createdAt: "2026-01-04T12:00:00Z",
+  rank: {
+    "زوامل": 1,
+    "الأكثر تحميلًا": 1
   },
+  codes: {
+    yemen:   { code: "SON02" },
+    sabafon: { code: "SON02" },
+    you:     { code: "SON02" }
+  }
+},
 
 {
-    id: "zamil_sabr_yaqalbi",
-    title: "والصبر ياقلبي- ابراهيم الدوله",
-    category: "زوامل",
-    image: "ringtones/images/sabr.jpg",
-    audio: "ringtones/audio/sabr.mp3",
-    codes: {
-      yemen: { code: "SABR" },
-      sabafon: { code: "SABR" },
-      you: { code: "SABR" }
-    }
-  },
-
-{
-  id: "reply_rdabra",
+  id: "reply-ibrahim",
   title: "رد ابراهيم",
-  category: "ردود آلية بالاسم",
-  image: "ringtones/images/rdabra.jpg",
+  categories: ["ردود آلية بالاسم"],
+  image: "AUTO",
   audio: "ringtones/audio/rdabra.mp3",
   codes: {
     yemen:   { code: "993001028" },
@@ -97,9 +104,9 @@ window.RINGTONES = [
 },
 
 {
-  id: "sport_real",
+  id: "sport-real",
   title: "لمشجعي مدريد",
-  category: "رياضية",
+  categories: ["رياضية"],
   image: "ringtones/images/real.jpg",
   audio: "ringtones/audio/real.mp3",
   codes: {
@@ -110,9 +117,9 @@ window.RINGTONES = [
 },
 
 {
-  id: "sport_brsa",
+  id: "sport-barca",
   title: "لمشجعي برشلونا",
-  category: "رياضية",
+  categories: ["رياضية"],
   image: "ringtones/images/brsa.jpg",
   audio: "ringtones/audio/brsa.mp3",
   codes: {
@@ -123,36 +130,10 @@ window.RINGTONES = [
 },
 
 {
-    id: "top_sahbe_yaqalbi",
-    title: "يصاحبي- ابراهيم الدولة",
-    category: "الأكثر تحميلًا",
-    image: "ringtones/images/sabr.jpg",
-    audio: "ringtones/audio/sahbe.mp3",
-    codes: {
-      yemen: { code:"993001044" },
-      sabafon: { code: "SABR" },
-      you: { code: "SABR" }
-   }
-},
-
-{
-    id: "top_baetk_yaqalbi",
-    title: "ياإلهي- ابراهيم الدولة",
-    category: "الأكثر تحميلًا",
-    image: "ringtones/images/sabr.jpg",
-    audio: "ringtones/audio/baetk.mp3",
-    codes: {
-      yemen: { code:"993001044" },
-      sabafon: { code: "SABR" },
-      you: { code: "SABR" }
-   }
-},
-
-{
-  id: "dua_mna",
+  id: "dua-motari",
   title: "دعاء يجيبني - احمد المطري",
-  category: "أدعية",
-  image: "ringtones/images/mad.jpg",
+  categories: ["أدعية"],
+  image: "ringtones/images/a3.jpg",
   audio: "ringtones/audio/mna.mp3",
   codes: {
     yemen:   { code: "DRA01" },
@@ -160,17 +141,145 @@ window.RINGTONES = [
     you:     { code: "DRA01" }
   }
 },
-   
+
 {
-  id: "nasheed_alf",
+  id: "nasheed-alf",
   title: "الف صلى - عبدالعظيم عزالدين",
-  category: "أناشيد",
-  image: "ringtones/images/abd.jpg",
+  categories: ["أناشيد"],
+  image: "ringtones/images/a2.jpg",
   audio: "ringtones/audio/alf.mp3",
   codes: {
     yemen:   { code: "NAS01" },
     sabafon: { code: "NAS01" },
     you:     { code: "NAS01" }
+  }
+},
+
+{
+  id: "song",
+  title: "واقف انا - حسن الاميري",
+  categories: ["أغاني", "الأكثر تحميلًا"],
+  image: "ringtones/images/a4.jpg",
+  audio: "ringtones/audio/oatf.mp3",
+  createdAt: "2026-01-04T12:00:00Z",
+  rank: {
+    "أغاني": 1,
+    "الأكثر تحميلًا": 3
+  },
+  codes: {
+    yemen:   { code: "SON02" },
+    sabafon: { code: "SON02" },
+    you:     { code: "SON02" }
+  }
+},
+
+{
+  id: "zamil-ya-ilahi",
+  title: "يا إلهي - ابراهيم الدوله",
+  categories: ["زوامل"],
+  image: "ringtones/images/a1.jpg",
+  audio: "ringtones/audio/a2.mp3",
+  codes: {
+    yemen:   { code: "ZAM01" },
+    sabafon: { code: "ZAM01" },
+    you:     { code: "ZAM01" }
+  }
+},
+
+{
+  id: "name",
+  title: "دعاء حمود",
+  categories: ["أدعية بالاسم"],
+  image: "AUTO",
+  audio: "ringtones/audio/h1.mp3",
+  createdAt: "2026-01-04T12:00:00Z",
+  codes: {
+    yemen:   { code: "RDA01" },
+    sabafon: { code: "RDA01" },
+    you:     { code: "RDA01" }
+  }
+},
+
+{
+  id: "name",
+  title: "دعاء أيمن",
+  categories: ["أدعية بالاسم"],
+  image: "AUTO",
+  audio: "ringtones/audio/ae1.mp3",
+  createdAt: "2026-01-04T12:00:00Z",
+  codes: {
+    yemen:   { code: "RDA01" },
+    sabafon: { code: "RDA01" },
+    you:     { code: "RDA01" }
+  }
+},
+
+{
+  id: "zamil",
+  title: "ياصاحبي- ابراهيم الدوله",
+  categories: ["زوامل"],
+  image: "ringtones/images/a1.jpg",
+  audio: "ringtones/audio/sa1.mp3",
+  createdAt: "2026-01-04T12:00:00Z",
+  rank: {
+    "زوامل": 2,
+  },
+  codes: {
+    yemen:   { code: "SON02" },
+    sabafon: { code: "SON02" },
+    you:     { code: "SON02" }
+  }
+},
+
+{
+  id: "nasheed",
+  title: "قف بالخضوع-عبدالعظيم عزالدين",
+  categories: ["أناشيد", "الأكثر تحميلًا"],
+  image: "ringtones/images/a2.jpg",
+  audio: "ringtones/audio/ab1.mp3",
+  createdAt: "2026-01-04T12:00:00Z",
+  rank: {
+    "أناشيد": 1,
+    "الأكثر تحميلًا": 2,
+  },
+  codes: {
+    yemen:   { code: "SON02" },
+    sabafon: { code: "SON02" },
+    you:     { code: "SON02" }
+  }
+},
+
+{
+  id: "nasheed",
+  title: "يامن تحل-عبدالعظيم عزالدين",
+  categories: ["أناشيد"],
+  image: "ringtones/images/a2.jpg",
+  audio: "ringtones/audio/ab2.mp3",
+createdAt: "2026-01-04T12:00:00Z",
+  rank: {
+    "أناشيد": 2,
+  },
+  codes: {
+    yemen:   { code: "SON02" },
+    sabafon: { code: "SON02" },
+    you:     { code: "SON02" }
+  }
+},
+
+{
+  id: "nasheed",
+  title: "إلهي وخلاقي-عبدالعظيم عزالدين",
+  categories: ["أناشيد"],
+  image: "ringtones/images/a2.jpg",
+  audio: "ringtones/audio/ab3.mp3",
+createdAt: "2026-01-04T12:00:00Z",
+  rank: {
+    "أناشيد": 3,
+  },
+  codes: {
+    yemen:   { code: "SON02" },
+    sabafon: { code: "SON02" },
+    you:     { code: "SON02" }
   }
 },
 ];
