@@ -28,6 +28,8 @@
   const categoriesGrid = $("categoriesGrid");
   const listGrid = $("listGrid");
   const listTitle = $("listTitle");
+  const listSearchWrap = $("listSearchWrap");
+  const listSearchInput = $("listSearchInput");
 
   const detailsName = $("detailsName");
   const detailsImage = $("detailsImage");
@@ -45,6 +47,9 @@
   const RINGTONES = window.RINGTONES || [];
   const COMPANIES = window.COMPANIES || [];
   const SERVICE_NUMBERS = window.SERVICE_NUMBERS || {};
+
+  // أقسام "بالاسم" (لا تظهر في الأحدث + لها بحث + صورة تلقائية)
+  const NAME_CATEGORIES = new Set(["أدعية بالاسم", "ردود آلية بالاسم"]);
 
   // State
   let currentCategory = null;
@@ -65,8 +70,17 @@
 
   function safe(s) { return (s ?? "").toString(); }
 
-  // Ensure fixed service numbers
-  function normalizeRingtone(r) {
+  // ---------- Normalize + ترتيب ----------
+  function toArrayCategories(r) {
+    // دعم توافق: category: "..." أو categories: ["...", ...]
+    const cats = Array.isArray(r.categories)
+      ? r.categories
+      : (r.category ? [r.category] : []);
+    // تنظيف + إزالة التكرارات
+    return Array.from(new Set(cats.map((x) => safe(x).trim()).filter(Boolean)));
+  }
+
+  function ensureCodes(r) {
     const codes = r.codes || {};
     for (const k of Object.keys(SERVICE_NUMBERS)) {
       if (!codes[k]) codes[k] = {};
@@ -74,7 +88,191 @@
     r.codes = codes;
     return r;
   }
-  const R = RINGTONES.map(normalizeRingtone);
+
+  function makeStableId(r, idx) {
+    const base = safe(r.id).trim();
+    if (base) return base;
+    const t = safe(r.title).trim() || "tone";
+    return (
+      t
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^\u0600-\u06FFa-z0-9\-]/gi, "")
+        .slice(0, 40) +
+      "-" +
+      (idx + 1)
+    );
+  }
+
+  function ensureUniqueIds(list) {
+    const seen = new Map();
+    list.forEach((r, i) => {
+      r.id = makeStableId(r, i);
+      const key = String(r.id);
+      const n = (seen.get(key) || 0) + 1;
+      seen.set(key, n);
+      if (n > 1) r.id = key + "-" + n; // ✅ يمنع تعارض التفاصيل/التشغيل
+    });
+    return list;
+  }
+
+  function parseDate(v) {
+    if (!v) return null;
+    const d = new Date(v);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  function buildAutoNameImage(text) {
+    // صورة تلقائية لأقسام (بالاسم): بطاقة رمادي فاتح + إطار ناعم + اسم كبير فقط
+    const raw = safe(text).trim() || "";
+
+    // نريد الاسم فقط بدون (دعاء/رد/رد آلي) في بداية العنوان
+    const title = raw
+      .replace(/^\s*دعاء\s+/u, "")
+      .replace(/^\s*رد\s*آلي(?:ه)?\s+/u, "")
+      .replace(/^\s*رد\s+/u, "")
+      .trim();
+
+    const size = 900;
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return "ringtones/images/placeholder.png";
+
+    // حاول تحميل خط عربي جميل (إنترنت) مرة واحدة — وإن لم يتوفر نستخدم بدائل النظام
+    try {
+      if (!document.getElementById("cairo-font-link")) {
+        const link = document.createElement("link");
+        link.id = "cairo-font-link";
+        link.rel = "stylesheet";
+        link.href = "https://fonts.googleapis.com/css2?family=Cairo:wght@700;800;900&display=swap";
+        document.head.appendChild(link);
+      }
+    } catch (_) {}
+
+    // ألوان البطاقة
+    const bg = "#f2f2f2";
+    const border = "#d6d6d6";
+    const textColor = "#222";
+
+    // خلفية
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, size, size);
+
+    // دالة رسم مستطيل بزوايا دائرية
+    function roundRect(x, y, w, h, r) {
+      const rr = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + rr, y);
+      ctx.arcTo(x + w, y, x + w, y + h, rr);
+      ctx.arcTo(x + w, y + h, x, y + h, rr);
+      ctx.arcTo(x, y + h, x, y, rr);
+      ctx.arcTo(x, y, x + w, y, rr);
+      ctx.closePath();
+    }
+
+    // إطار داخلي ناعم (Card)
+    const margin = 60;
+    const radius = 26;
+    const innerX = margin;
+    const innerY = margin;
+    const innerW = size - margin * 2;
+    const innerH = size - margin * 2;
+
+    // ظل خفيف جدًا للإطار (فخامة بدون مبالغة)
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,.08)";
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetY = 6;
+    roundRect(innerX, innerY, innerW, innerH, radius);
+    ctx.fillStyle = bg;
+    ctx.fill();
+    ctx.restore();
+
+    // حد الإطار
+    roundRect(innerX, innerY, innerW, innerH, radius);
+    ctx.strokeStyle = border;
+    ctx.lineWidth = 6;
+    ctx.stroke();
+
+    // إعدادات النص
+    ctx.fillStyle = textColor;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.direction = "rtl";
+
+    // مساحة النص (داخل الإطار)
+    const pad = 90;
+    const maxWidth = innerW - pad * 2;
+
+    // خط عربي مناسب للأسماء + بدائل قوية
+    const fontStack = "Cairo, Tajawal, 'Noto Naskh Arabic', 'Amiri', Tahoma, Arial, sans-serif";
+
+    // تكبير الاسم: يبدأ كبير جدًا ثم يصغر حتى يناسب العرض
+    let fontSize = 210;
+    const minSize = 70;
+    while (fontSize > minSize) {
+      ctx.font = `900 ${fontSize}px ${fontStack}`;
+      if (ctx.measureText(title).width <= maxWidth) break;
+      fontSize -= 3;
+    }
+
+    // ظل بسيط للنص لزيادة الوضوح
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,.12)";
+    ctx.shadowBlur = 6;
+    ctx.shadowOffsetY = 3;
+
+    // إذا الاسم طويل جدًا نقسمه لسطرين
+    const words = title.split(/\s+/).filter(Boolean);
+    if (ctx.measureText(title).width > maxWidth && words.length > 1) {
+      const mid = Math.ceil(words.length / 2);
+      const line1 = words.slice(0, mid).join(" ");
+      const line2 = words.slice(mid).join(" ");
+      ctx.font = `900 ${fontSize}px ${fontStack}`;
+      ctx.fillText(line1, size / 2, size / 2 - fontSize * 0.55);
+      ctx.fillText(line2, size / 2, size / 2 + fontSize * 0.55);
+    } else {
+      ctx.font = `900 ${fontSize}px ${fontStack}`;
+      ctx.fillText(title, size / 2, size / 2);
+    }
+    ctx.restore();
+
+    try {
+      return canvas.toDataURL("image/png");
+    } catch {
+      return "ringtones/images/placeholder.png";
+    }
+  }
+
+function normalizeRingtone(r, idx) {
+    const out = { ...r };
+    out.categories = toArrayCategories(out);
+    delete out.category; // منع الالتباس
+    out._createdIndex = idx; // fallback للفرز
+
+    // createdAt اختياري: إن لم يوجد سيُستخدم ترتيب الإدخال
+    const d = parseDate(out.createdAt);
+    out._createdAtMs = d ? d.getTime() : null;
+
+    // rank اختياري: رقم ترتيب يدوي (كل ما كان أصغر = أعلى)
+    // يمكن أن يكون رقمًا عامًا أو كائنًا حسب القسم {"زوامل": 1, "الأكثر تحميلًا": 3}
+    out.rank = out.rank ?? null;
+
+    // صورة تلقائية للأقسام بالاسم (إذا لم تُحدد صورة أو كانت AUTO)
+    const isNameCat = out.categories.some((c) => NAME_CATEGORIES.has(c));
+    if (isNameCat) {
+      if (!out.image || String(out.image).toUpperCase() === "AUTO") {
+        out.image = buildAutoNameImage(out.title);
+      }
+    }
+
+    ensureCodes(out);
+    return out;
+  }
+
+  const R = ensureUniqueIds(RINGTONES.map((r, i) => normalizeRingtone(r, i)));
 
   function showView(name) {
     Object.values(views).forEach((v) => v && v.classList.add("hidden"));
@@ -148,9 +346,54 @@
   }
 
   // ---------- List ----------
+  function getRankForCategory(t, cat) {
+    if (t.rank == null) return null;
+    if (typeof t.rank === "number") return t.rank;
+    if (typeof t.rank === "object" && t.rank) {
+      const v = t.rank[cat];
+      if (v == null) return null;
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    }
+    return null;
+  }
+
+  function sortForCategory(list, cat) {
+    return [...list].sort((a, b) => {
+      const ra = getRankForCategory(a, cat);
+      const rb = getRankForCategory(b, cat);
+      if (ra != null && rb != null && ra !== rb) return ra - rb;
+      if (ra != null && rb == null) return -1;
+      if (ra == null && rb != null) return 1;
+
+      // ✅ الافتراضي: لو ما فيه createdAt اعتبر ترتيب الملف (الأعلى أحدث)
+      const da = (a._createdAtMs ?? -a._createdIndex);
+      const db = (b._createdAtMs ?? -b._createdIndex);
+      return db - da; // الأحدث أولاً
+    });
+  }
+
+  function isExcludedFromLatest(t) {
+    return t.categories.some((c) => NAME_CATEGORIES.has(c));
+  }
+
+  function primaryCategoryForLatest(t) {
+    // إظهار اسم القسم تحت الاسم في "الأحدث" (مع تجاهل الأحدث/الأكثر تحميلًا)
+    const skip = new Set(["الأحدث", "الأكثر تحميلًا"]);
+    const c = t.categories.find((x) => !skip.has(x));
+    return c || null;
+  }
+
   function getCategoryRingtones(cat) {
-    // يدوي 100%: لا فرز ولا تلقائي
-    return R.filter((x) => x.category === cat);
+    // ✅ "الأحدث" تلقائي: كل الأقسام ما عدا الأقسام بالاسم
+    if (cat === "الأحدث") {
+      const list = R.filter((t) => !isExcludedFromLatest(t));
+      return sortForCategory(list, cat);
+    }
+
+    // باقي الأقسام: حسب التصنيف (يدعم تعدد الأقسام)
+    const list = R.filter((t) => t.categories.includes(cat));
+    return sortForCategory(list, cat);
   }
 
   function setPlayIcon(btn, isPlaying) {
@@ -164,6 +407,14 @@
     const div = document.createElement("div");
     div.className = "tone-card";
 
+    const metaParts = [];
+    // ✅ في الأحدث: أظهر اسم القسم بين قوسين تحت الاسم
+    if (currentCategory === "الأحدث") {
+      const c = primaryCategoryForLatest(t);
+      if (c) metaParts.push(`(${c})`);
+    }
+    const metaLine = metaParts.length ? `<div class="tone-meta">${metaParts.join(" ")}</div>` : "";
+
     div.innerHTML = `
       <div class="tone-thumb-wrap">
         <img class="tone-thumb" src="${t.image}" alt="${safe(t.title)}"
@@ -171,6 +422,7 @@
       </div>
 
       <div class="tone-name">${safe(t.title)}</div>
+      ${metaLine}
 
       <div class="tone-actions">
         <button class="btn btn-soft tone-play" type="button" aria-label="تشغيل/إيقاف">▶</button>
@@ -249,6 +501,26 @@
     items.forEach((t) => listGrid.appendChild(toneCard(t)));
   }
 
+  function setSearchEnabled(isEnabled) {
+    if (!listSearchWrap || !listSearchInput) return;
+    listSearchWrap.classList.toggle("hidden", !isEnabled);
+    if (!isEnabled) {
+      listSearchInput.value = "";
+    }
+  }
+
+  function applySearchFilter() {
+    if (!listSearchInput) return;
+    const q = safe(listSearchInput.value).trim();
+    if (!q) {
+      renderList(currentList);
+      return;
+    }
+    const qq = q.toLowerCase();
+    const filtered = currentList.filter((t) => safe(t.title).toLowerCase().includes(qq));
+    renderList(filtered);
+  }
+
   // ✅ openCategory مع خيار بدون push (للاسترجاع عند التحديث)
   function openCategory(cat, noPush) {
     currentCategory = cat;
@@ -258,7 +530,20 @@
     sessionStorage.setItem("lastCategory", cat);
 
     if (listTitle) listTitle.textContent = cat;
+    // ✅ تفعيل البحث فقط في الأقسام بالاسم
+    const enableSearch = NAME_CATEGORIES.has(cat);
+    setSearchEnabled(enableSearch);
     renderList(currentList);
+    if (enableSearch) {
+      // bind once
+      if (!listSearchInput.dataset.bound) {
+        listSearchInput.dataset.bound = "1";
+        listSearchInput.addEventListener("input", applySearchFilter);
+        listSearchInput.addEventListener("search", applySearchFilter);
+      }
+      // إعادة تطبيق بعد تغيير القسم
+      setTimeout(() => listSearchInput.focus(), 50);
+    }
 
     if (noPush) {
       showView("list");
@@ -326,7 +611,10 @@
           <img class="company-logo" src="${c.logo}" alt="${safe(c.name)}" onerror="this.style.display='none'">
           <div class="company-info">
             <div class="company-name">${safe(c.name)}</div>
-            <div class="company-code">الرقم: <span class="mono">${safe(number)}</span> — الكود: <span class="mono">${safe(code)}</span></div>
+            <div class="company-meta">
+              <div class="company-number">الرقم: <span class="mono">${safe(number)}</span></div>
+              <div class="company-code">الكود: <span class="mono">${safe(code)}</span></div>
+            </div>
           </div>
         </div>
         <button class="btn" type="button">اشتراك</button>
@@ -447,4 +735,50 @@
 
   // Start
   renderCategories();
+})();
+/* --- single-line auto-fit (added as requested) --- */
+(function () {
+  function fitTextSingleLine(selector, minSize) {
+    minSize = minSize || 10;
+
+    document.querySelectorAll(selector).forEach(function (el) {
+      if (!el) return;
+
+      // reset to base size first
+      var base = 14;
+      el.style.whiteSpace = "nowrap";
+      el.style.overflow = "hidden";
+      el.style.fontSize = base + "px";
+
+      var size = base;
+      // shrink until it fits
+      while (el.scrollWidth > el.clientWidth && size > minSize) {
+        size -= 1;
+        el.style.fontSize = size + "px";
+      }
+    });
+  }
+
+  function fitAll() {
+    fitTextSingleLine(".tone-name", 10);
+    fitTextSingleLine(".company-name", 10);
+    fitTextSingleLine(".company-number", 10);
+    fitTextSingleLine(".company-code", 10);
+  }
+
+  // Run on load + resize
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", fitAll);
+  } else {
+    fitAll();
+  }
+  window.addEventListener("resize", fitAll);
+
+  // Also run when DOM changes (e.g., navigating between sections)
+  var t;
+  var obs = new MutationObserver(function () {
+    clearTimeout(t);
+    t = setTimeout(fitAll, 50);
+  });
+  obs.observe(document.body, { childList: true, subtree: true });
 })();
