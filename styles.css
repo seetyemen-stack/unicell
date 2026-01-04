@@ -4,12 +4,13 @@
    ========================================================= */
 
 :root{
-  --bg-main:#061a3a;
-  --bg-card:#0a2a5e;
-  --bg-card-hover:#0f3470;
+  /* Palette matched closely to logo (darker) */
+  --bg-main:#083866;
+  --bg-card:#0a447f;
+  --bg-card-hover:#0b4f93;
 
-  --brand:#0a5bd3;
-  --brand2:#084bb3;
+  --brand:#0f6ecb;
+  --brand2:#0b5aa8;
 
   --text:#ffffff;
   --muted:#e0e6f2;
@@ -28,12 +29,26 @@
 
 *{ box-sizing:border-box; }
 html,body{ height:100%; }
+
 body{
   margin:0;
   font-family:"Cairo", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  background: var(--bg-main);
-  color: var(--text);
+  background: var(--bg-main) url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22260%22%20height%3D%22260%22%20viewBox%3D%220%200%20260%20260%22%3E%0A%20%20%3Crect%20width%3D%22260%22%20height%3D%22260%22%20fill%3D%22none%22/%3E%0A%20%20%3Cg%20fill%3D%22white%22%20fill-opacity%3D%220.075%22%3E%0A%20%20%20%20%3C%21--%20small%20note%20--%3E%0A%20%20%20%20%3Cpath%20d%3D%22M54%2040v92c0%2013-10%2023-23%2023s-23-10-23-23%2010-23%2023-23c4%200%208%201%2012%203V34l60-12v17z%22/%3E%0A%20%20%20%20%3C%21--%20small%20play%20--%3E%0A%20%20%20%20%3Cpath%20d%3D%22M186%2034l38%2022-38%2022z%22/%3E%0A%20%20%20%20%3C%21--%20small%20mic%20--%3E%0A%20%20%20%20%3Cpath%20d%3D%22M156%20166c0%2012-10%2022-22%2022s-22-10-22-22v-20c0-12%2010-22%2022-22s22%2010%2022%2022z%22/%3E%0A%20%20%20%20%3C%21--%20small%20headphones%20--%3E%0A%20%20%20%20%0A%20%20%20%20%3C%21--%20tiny%20note%20bottom%20--%3E%0A%20%20%20%20%3Cpath%20d%3D%22M198%20184v40c0%209-7%2016-16%2016s-16-7-16-16%207-16%2016-16c3%200%205%201%208%202v-28l32-7v14z%22/%3E%0A%20%20%3C/g%3E%0A%3C/svg%3E") repeat;
+  background-size: 110px 110px;
+  background-position: 22px 28px;
+color: var(--text);
 }
+
+/* ===== Music icons background (subtle, repeated) ===== */
+body{ position: relative; }
+
+
+/* Right: normal */
+
+/* Left: flipped (inverted) */
+
+body::before,
+
 
 a{ color:inherit; }
 a:hover{ opacity:.92; }
@@ -55,6 +70,7 @@ a:hover{ opacity:.92; }
   text-align:center;
 }
 
+
 .brand{
   display:flex;
   flex-direction:column;
@@ -73,6 +89,21 @@ a:hover{ opacity:.92; }
   display:grid;
   place-items:center;
   overflow:hidden;
+}
+
+.brand-logo{
+  position: relative;
+}
+.brand-logo::after{
+  content:"";
+  position:absolute;
+  inset:-18px;
+  z-index:-1;
+  border-radius: 30px;
+  background: radial-gradient(closest-side at 50% 60%, rgba(0,0,0,.55), rgba(0,0,0,0) 72%);
+  filter: blur(10px);
+  opacity: .55;
+  pointer-events:none;
 }
 
 .brand-logo img{
@@ -197,10 +228,37 @@ a:hover{ opacity:.92; }
   font-weight: 900;
   font-size: 14px;
   margin-top: 10px;
+  line-height: 1.2;
   white-space: nowrap;
-  overflow:hidden;
-  text-overflow: ellipsis;
+  overflow: hidden;
 }
+
+.tone-meta{
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: .85;
+}
+
+/* Search (List) */
+.search-wrap{
+  margin: 10px 0 0;
+}
+
+.search-wrap.hidden{ display:none; }
+
+.search-input{
+  width: 100%;
+  height: 46px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.06);
+  color: #fff;
+  padding: 0 14px;
+  font-family: "Cairo", Arial, sans-serif;
+  outline: none;
+}
+
+.search-input::placeholder{ color: rgba(255,255,255,.65); }
 
 /* Actions under ringtone */
 .tone-actions{
@@ -338,21 +396,31 @@ button, .btn{ -webkit-tap-highlight-color: rgba(0,0,0,0) !important; }
 }
 
 .company-name{
-  font-weight: 900;
-  font-size: 15px;
+  font-weight: 800;
+  font-size: 14px;
   line-height: 1.2;
-  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .company-code{
   margin-top: 4px;
   color: rgba(255,255,255,.80);
   font-size: 12.5px;
-  line-height: 1.4;
-
+  line-height: 1.35;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: clip;
+}
+
+.company-meta{ margin-top: 4px; }
+.company-number{
+  color: rgba(255,255,255,.80);
+  font-size: 12.5px;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
 }
 
 /* داخل الاشتراكات: الأرقام LTR بشكل صحيح */
@@ -441,3 +509,4 @@ button, .btn{ -webkit-tap-highlight-color: rgba(0,0,0,0) !important; }
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: .95em;
 }
+.sub-item .btn{ flex-shrink: 0; }
