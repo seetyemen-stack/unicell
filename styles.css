@@ -510,3 +510,14 @@ button, .btn{ -webkit-tap-highlight-color: rgba(0,0,0,0) !important; }
   font-size: .95em;
 }
 .sub-item .btn{ flex-shrink: 0; }
+
+
+/* ===== Mobile touch optimizations ===== */
+button, a, input, .btn{ touch-action: manipulation; }
+button:focus{ outline: none; }
+@media (prefers-reduced-motion: reduce){
+  *{ transition: none !important; scroll-behavior: auto !important; }
+}
+
+/* Minimum tap targets */
+.btn, .tone-actions .tone-play, .tone-actions .tone-subscribe{ min-height: 44px; }
