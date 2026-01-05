@@ -1,0 +1,20 @@
+{
+  "name": "مكتبة نغمات يونيسل تكنولوجي",
+  "short_name": "نغمات يونيسل",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#083866",
+  "theme_color": "#083866",
+  "description": "استمع لمعاينة النغمات واطلب الاشتراك بسهولة.",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
