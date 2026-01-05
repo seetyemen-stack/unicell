@@ -34,6 +34,13 @@
   const detailsName = $("detailsName");
   const detailsImage = $("detailsImage");
   const detailsAudio = $("detailsAudio");
+  let detailsAutoStopTimer = null;
+  function clearDetailsAutoStop(){ if(detailsAutoStopTimer){ clearTimeout(detailsAutoStopTimer); detailsAutoStopTimer=null; } }
+  function armDetailsAutoStop() {
+    if (!AUDIO_PREVIEW_LIMIT_ENABLED) return; clearDetailsAutoStop(); detailsAutoStopTimer = setTimeout(()=>{
+    if(detailsAudio && !detailsAudio.paused){ try{ detailsAudio.pause(); }catch{} detailsAudio.currentTime=0; setDetailsPlaying(false); }
+  }, PREVIEW_LIMIT_SECONDS*1000); }
+
   const mediaToggle = $("mediaToggle");
 
   const subsGrid = $("subsGrid");
@@ -57,7 +64,57 @@
 
   // Preview audio in list (single shared instance to avoid overlap)
   const previewAudio = new Audio();
+  // تهيئة سريعة قدر الإمكان على الشبكات الضعيفة
+  previewAudio.preload = "auto";
   let previewPlayingId = null;
+  let previewPlayingBtn = null;
+  let previewAutoStopTimer = null;
+  const PREVIEW_LIMIT_SECONDS = 15;
+  // ✅ تم تعطيل حد المدة داخل JavaScript — الاعتماد على قص الملفات الصوتية مسبقًا
+  const AUDIO_PREVIEW_LIMIT_ENABLED = false;
+
+  function clearPreviewAutoStop() {
+    if (previewAutoStopTimer) {
+      clearTimeout(previewAutoStopTimer);
+      previewAutoStopTimer = null;
+    }
+  }
+
+  function armPreviewAutoStop(expectedId) {
+    clearPreviewAutoStop();
+    previewAutoStopTimer = setTimeout(() => {
+      // أوقف فقط لو ما زالت نفس النغمة هي التي تعمل
+      if (previewPlayingId === expectedId && !previewAudio.paused) {
+        try { previewAudio.pause(); } catch {}
+        previewAudio.currentTime = 0;
+        previewPlayingId = null;
+        if (previewPlayingBtn) setPlayIcon(previewPlayingBtn, false);
+      }
+    }, PREVIEW_LIMIT_SECONDS * 1000);
+  }
+  // تنظيف عند الإيقاف/الخطأ
+  previewAudio.addEventListener("pause", () => {
+    clearPreviewAutoStop();
+    if (previewPlayingBtn && previewAudio.paused) {
+      // لا نغيّر الأيقونة هنا إلا إذا لم يعد لدينا تشغيل فعلي
+      // (تتم إدارتها من stopPreview أو ended أو auto-stop)
+    }
+  });
+  previewAudio.addEventListener("error", () => {
+    clearPreviewAutoStop();
+    previewPlayingId = null;
+    if (previewPlayingBtn) setPlayIcon(previewPlayingBtn, false);
+    previewPlayingBtn = null;
+  });
+
+  // عند انتهاء الصوت: رجّع زر التشغيل (مرة واحدة فقط)
+  previewAudio.addEventListener("ended", () => {
+    clearPreviewAutoStop();
+    previewPlayingId = null;
+    if (previewPlayingBtn) setPlayIcon(previewPlayingBtn, false);
+    previewPlayingBtn = null;
+  });
+
 
   // Toast
   let toastTimer = null;
@@ -297,15 +354,46 @@ function normalizeRingtone(r, idx) {
   }
 
   function stopPreview() {
+    clearPreviewAutoStop();
     try { previewAudio.pause(); } catch {}
     previewAudio.currentTime = 0;
     previewPlayingId = null;
+    if (previewPlayingBtn) setPlayIcon(previewPlayingBtn, false);
+    previewPlayingBtn = null;
   }
+
+  function stopAllAudio() {
+    stopPreview();
+    try { detailsAudio.pause(); } catch {}
+    try { detailsAudio.currentTime = 0; } catch {}
+    clearDetailsAutoStop();
+    setDetailsPlaying(false);
+  }
+
+  // أوقف الصوت عند الخروج/فتح رابط خارجي/إخفاء الصفحة
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) stopAllAudio();
+  });
+  window.addEventListener("pagehide", () => stopAllAudio());
+  window.addEventListener("beforeunload", () => stopAllAudio());
+
+  // أي رابط تواصل / اتصالات / روابط تفتح تبويب جديد
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest?.("a");
+    if (!a) return;
+    const href = (a.getAttribute("href") || "").trim().toLowerCase();
+    const inFooter = !!a.closest("footer");
+    const isExternal = a.target === "_blank";
+    const isContact = href.startsWith("tel:") || href.startsWith("mailto:") || href.includes("wa.me") || href.includes("whatsapp") || href.includes("t.me") || href.includes("telegram") || href.includes("facebook") || href.includes("instagram") || href.includes("tiktok") || href.includes("x.com") || href.includes("twitter");
+    if (inFooter || isExternal || isContact) stopAllAudio();
+  }, true);
 
   // عند الرجوع (زر الهاتف أو السحب)
   window.addEventListener("popstate", (e) => {
     stopPreview();
     try { detailsAudio.pause(); } catch {}
+    detailsAudio.currentTime = 0;
+    clearDetailsAutoStop();
     setDetailsPlaying(false);
 
     const name = (e.state && e.state.view) || "categories";
@@ -448,12 +536,32 @@ function normalizeRingtone(r, idx) {
 
         // إيقاف أي نغمة سابقة + تحديث أي أزرار قديمة
         stopPreview();
-        // (لو كان فيه زر سابق مفعّل داخل كارد آخر، المتصفح سيعيد رسمه عند إعادة renderList، لكن هنا نحدّث الحالي)
-        previewAudio.src = t.audio;
-        previewPlayingId = t.id;
-        await previewAudio.play();
 
-        setPlayIcon(playBtn, true);
+        previewPlayingId = t.id;
+        previewPlayingBtn = playBtn;
+
+        // ✅ شغّل فورًا عند الضغط (لا تنتظر canplaythrough)
+        previewAudio.src = t.audio;
+
+        const tryPlay = () =>
+          previewAudio.play().then(() => {
+            setPlayIcon(playBtn, true);
+          }).catch(() => {
+            // fallback: جرّب بعد جاهزية أبسط (canplay) بدل canplaythrough
+            const onCanPlay = () => {
+              previewAudio.removeEventListener("canplay", onCanPlay);
+              previewAudio.play().then(() => {
+                setPlayIcon(playBtn, true);
+              }).catch(() => {
+                stopPreview();
+                setPlayIcon(playBtn, false);
+              });
+            };
+            previewAudio.addEventListener("canplay", onCanPlay, { once: true });
+            try { previewAudio.load(); } catch {}
+          });
+
+        tryPlay();
         playBtn.blur(); // ✅
       } catch {
         stopPreview();
@@ -463,14 +571,7 @@ function normalizeRingtone(r, idx) {
       }
     });
 
-    // عند انتهاء الصوت: رجّع زر التشغيل
-    previewAudio.addEventListener("ended", () => {
-      // فقط لو هذه هي نفس النغمة
-      if (previewPlayingId === t.id) {
-        previewPlayingId = null;
-        setPlayIcon(playBtn, false);
-      }
-    });
+
 
     // زر اشتراك -> تفاصيل
     subBtn.addEventListener("click", () => {
@@ -564,11 +665,27 @@ function normalizeRingtone(r, idx) {
     try {
       if (isPlaying) {
         detailsAudio.pause();
+        detailsAudio.currentTime = 0;
+        clearDetailsAutoStop();
         setDetailsPlaying(false);
       } else {
-        await detailsAudio.play();
+        detailsAudio.load();
+        detailsAudio.play().catch(() => {});
+        armDetailsAutoStop();
         setDetailsPlaying(true);
       }
+
+  // عند انتهاء معاينة التفاصيل (20 ثانية أو نهاية الملف)
+  if (detailsAudio) {
+    detailsAudio.addEventListener("ended", () => {
+      clearDetailsAutoStop();
+      try { detailsAudio.currentTime = 0; } catch {}
+      setDetailsPlaying(false);
+    });
+    detailsAudio.addEventListener("pause", () => {
+      clearDetailsAutoStop();
+    });
+  }
     } catch {
       setDetailsPlaying(false);
       toastMsg("تعذر تشغيل الصوت (تحقق من ملف الصوت).");
@@ -653,6 +770,8 @@ function normalizeRingtone(r, idx) {
 
     // توقف أي تشغيل سابق في التفاصيل
     try { detailsAudio.pause(); } catch {}
+    detailsAudio.currentTime = 0;
+    clearDetailsAutoStop();
     setDetailsPlaying(false);
 
     if (detailsName) detailsName.textContent = t.title;
@@ -738,29 +857,34 @@ function normalizeRingtone(r, idx) {
 })();
 /* --- single-line auto-fit (added as requested) --- */
 (function () {
-  function fitTextSingleLine(selector, minSize) {
+  function fitTextSingleLine(selector, minSize, limit) {
     minSize = minSize || 10;
 
-    document.querySelectorAll(selector).forEach(function (el) {
-      if (!el) return;
+    // Limit work on low-end mobiles (long lists can freeze the UI)
+    const nodes = Array.from(document.querySelectorAll(selector));
+    const els = (typeof limit === "number" && limit >= 0) ? nodes.slice(0, limit) : nodes;
 
-      // reset to base size first
+    els.forEach(function (el) {
+      // Reset to base first
       var base = 14;
       el.style.whiteSpace = "nowrap";
       el.style.overflow = "hidden";
+      el.style.textOverflow = "ellipsis";
       el.style.fontSize = base + "px";
 
-      var size = base;
-      // shrink until it fits
-      while (el.scrollWidth > el.clientWidth && size > minSize) {
-        size -= 1;
+      // If it fits, keep it
+      if (el.scrollWidth <= el.clientWidth) return;
+
+      // Reduce until it fits or hits minSize
+      for (var size = base; size >= minSize; size--) {
         el.style.fontSize = size + "px";
+        if (el.scrollWidth <= el.clientWidth) break;
       }
     });
   }
 
   function fitAll() {
-    fitTextSingleLine(".tone-name", 10);
+    fitTextSingleLine(".tone-name", 10, 40);
     fitTextSingleLine(".company-name", 10);
     fitTextSingleLine(".company-number", 10);
     fitTextSingleLine(".company-code", 10);
