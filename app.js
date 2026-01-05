@@ -739,7 +739,7 @@ function normalizeRingtone(r, idx) {
 
       item.querySelector("button").addEventListener("click", async () => {
         if (!number || !code) {
-          toastMsg("ضع كود الاشتراك لهذه الشركة داخل data.js");
+          toastMsg("المعذرة، هذه النغمة غير موجودة في هذه الشركة");
           return;
         }
 
